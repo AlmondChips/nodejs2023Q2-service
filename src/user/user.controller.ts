@@ -18,31 +18,31 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto) {
+    return await this.userService.create(createUserDto);
   }
 
   @Get()
-  findAll() {
-    return this.userService.findAll();
+  async findAll() {
+    return await this.userService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id', UUIDValidationPipe) id: string) {
-    return this.userService.findOne(id);
+  async findOne(@Param('id', UUIDValidationPipe) id: string) {
+    return await this.userService.findOne(id);
   }
 
   @Put(':id')
-  update(
+  async updatePassword(
     @Param('id', UUIDValidationPipe) id: string,
     @Body() updateUserDto: UpdateUserPasswordDto,
   ) {
-    return this.userService.updatePassword(id, updateUserDto);
+    return await this.userService.updatePassword(id, updateUserDto);
   }
 
   @Delete(':id')
   @HttpCode(204)
-  remove(@Param('id', UUIDValidationPipe) id: string) {
-    return this.userService.remove(id);
+  async remove(@Param('id', UUIDValidationPipe) id: string) {
+    return await this.userService.remove(id);
   }
 }
