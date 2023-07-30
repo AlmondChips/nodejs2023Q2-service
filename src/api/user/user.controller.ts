@@ -11,7 +11,7 @@ import {
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserPasswordDto } from './dto/update-users-password.dto';
-import { UUIDValidationPipe } from 'src/pipes/uuid.validation.pipe';
+import { UUIDValidationPipe } from 'src/api/pipes/uuid.validation.pipe';
 
 @Controller('user')
 export class UserController {

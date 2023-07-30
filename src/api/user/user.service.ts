@@ -1,12 +1,9 @@
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from 'src/interfaces/service.resources.interface';
 import { v4 as uuid4 } from 'uuid';
 import { UpdateUserPasswordDto } from './dto/update-users-password.dto';
+import { getData } from 'src/helpers/getData';
 
 @Injectable()
 export class UserService {
@@ -18,13 +15,7 @@ export class UserService {
     return userCopy;
   }
 
-  private getUserData(id: string): { user: User; index: number } {
-    const index = this.users.findIndex((user) => user.id === id);
-    if (index === -1) {
-      throw new NotFoundException();
-    }
-    return { user: this.users[index], index };
-  }
+  private getUserData = getData<User>(this.users);
 
   create(createUserDto: CreateUserDto): User {
     const timeStamp = Date.now();
@@ -44,24 +35,24 @@ export class UserService {
   }
 
   findOne(id: string): User {
-    const { user } = this.getUserData(id);
-    return this.excludePassword(user);
+    const { data } = this.getUserData(id);
+    return this.excludePassword(data);
   }
 
   updatePassword(
     id: string,
     updateUserPasswordDto: UpdateUserPasswordDto,
   ): User {
-    const { user, index } = this.getUserData(id);
-    console.log(user.password, updateUserPasswordDto.oldPassword);
-    if (!(user.password === updateUserPasswordDto.oldPassword))
+    const { data, index } = this.getUserData(id);
+    console.log(data.password, updateUserPasswordDto.oldPassword);
+    if (!(data.password === updateUserPasswordDto.oldPassword))
       throw new ForbiddenException(
         'Old password does not match the current password',
       );
     const updatedUser: User = {
-      ...user,
+      ...data,
       password: updateUserPasswordDto.newPassword,
-      version: ++user.version,
+      version: ++data.version,
       updatedAt: Date.now(),
     };
     this.users.splice(index, 1, updatedUser);
