@@ -13,42 +13,48 @@ import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 import { UUIDValidationPipe } from '../pipes/uuid.validation.pipe';
 import { AlbumService } from '../album/album.service';
+import { TrackService } from '../track/track.service';
+import { FavsService } from '../favs/favs.service';
 
 @Controller('artist')
 export class ArtistController {
   constructor(
     private readonly artistService: ArtistService,
     private readonly albumService: AlbumService,
+    private readonly trackService: TrackService,
+    private readonly favsService: FavsService,
   ) {}
 
   @Post()
-  create(@Body() createArtistDto: CreateArtistDto) {
-    return this.artistService.create(createArtistDto);
+  async create(@Body() createArtistDto: CreateArtistDto) {
+    return await this.artistService.create(createArtistDto);
   }
 
   @Get()
-  findAll() {
-    return this.artistService.findAll();
+  async findAll() {
+    return await this.artistService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id', UUIDValidationPipe) id: string) {
-    return this.artistService.findOne(id);
+  async findOne(@Param('id', UUIDValidationPipe) id: string) {
+    return await this.artistService.findOne(id);
   }
 
   @Put(':id')
-  update(
+  async update(
     @Param('id', UUIDValidationPipe) id: string,
     @Body() updateArtistDto: UpdateArtistDto,
   ) {
-    return this.artistService.update(id, updateArtistDto);
+    return await this.artistService.update(id, updateArtistDto);
   }
 
   @Delete(':id')
   @HttpCode(204)
   remove(@Param('id', UUIDValidationPipe) id: string) {
+    this.favsService.removeOnFindArtist(id);
     this.artistService.remove(id);
     this.albumService.cascadeDeleteArtistId(id);
+    this.trackService.cascadeDeleteArtistId(id);
     return;
   }
 }

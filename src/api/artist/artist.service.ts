@@ -9,7 +9,9 @@ import { v4 as uuid4 } from 'uuid';
 export class ArtistService {
   private readonly artists: Artist[] = [];
 
-  private getArtistData = getData<Artist>(this.artists);
+  private getArtistData = (id: string) => {
+    return getData<Artist>(this.artists)(id);
+  };
 
   create(createArtistDto: CreateArtistDto): Artist {
     const newArtist: Artist = {
@@ -24,7 +26,7 @@ export class ArtistService {
     return this.artists;
   }
 
-  findOne(id: string): Artist {
+  async findOne(id: string): Promise<Artist> {
     const { data } = this.getArtistData(id);
     return data;
   }

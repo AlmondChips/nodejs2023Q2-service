@@ -9,11 +9,14 @@ import { v4 } from 'uuid';
 export class AlbumService {
   private albums: Album[] = [];
 
-  private getAlbumData = getData<Album>(this.albums);
+  private getAlbumData = (id: string) => {
+    return getData<Album>(this.albums)(id);
+  };
 
   create(createAlbumDto: CreateAlbumDto): Album {
     const newAlbum: Album = {
       id: v4(),
+      artistId: null,
       ...createAlbumDto,
     };
     this.albums.push(newAlbum);
@@ -24,7 +27,7 @@ export class AlbumService {
     return this.albums;
   }
 
-  findOne(id: string): Album {
+  async findOne(id: string): Promise<Album> {
     const { data } = this.getAlbumData(id);
     return data;
   }
