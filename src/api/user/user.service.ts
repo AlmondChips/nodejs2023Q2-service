@@ -59,7 +59,7 @@ export class UserService {
     return this.excludePassword(updatedUser);
   }
 
-  remove(id: string) {
+  remove(id: string): void {
     const { index } = this.getUserData(id);
     this.users.splice(index, 1);
   }

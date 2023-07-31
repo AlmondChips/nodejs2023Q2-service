@@ -39,7 +39,7 @@ export class ArtistService {
     return updatedArtist;
   }
 
-  remove(id: string) {
+  remove(id: string): void {
     const { index } = this.getArtistData(id);
     this.artists.splice(index, 1);
   }
