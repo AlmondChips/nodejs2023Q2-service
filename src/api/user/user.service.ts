@@ -4,7 +4,6 @@ import { User } from 'src/interfaces/service.resources.interface';
 import { v4 as uuid4 } from 'uuid';
 import { UpdateUserPasswordDto } from './dto/update-users-password.dto';
 import { getData } from 'src/helpers/getData';
-
 @Injectable()
 export class UserService {
   private readonly users: User[] = [];
