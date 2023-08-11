@@ -3,6 +3,8 @@ import { AppModule } from './api/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { config } from 'dotenv';
 
+import 'reflect-metadata';
+
 config();
 
 const port = process.env.PORT || 4000;

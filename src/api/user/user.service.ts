@@ -1,12 +1,19 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { User } from 'src/interfaces/service.resources.interface';
+import { User as User1 } from 'src/interfaces/service.resources.interface';
 import { v4 as uuid4 } from 'uuid';
 import { UpdateUserPasswordDto } from './dto/update-users-password.dto';
 import { getData } from 'src/helpers/getData';
+import { User } from 'src/database/entity/User';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 @Injectable()
 export class UserService {
-  private readonly users: User[] = [];
+  constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+  ) {}
+  private readonly users: User1[] = [];
 
   private excludePassword(user: User): User {
     const userCopy = { ...user };
@@ -14,7 +21,7 @@ export class UserService {
     return userCopy;
   }
 
-  private getUserData = getData<User>(this.users);
+  private getUserData = getData<User1>(this.users);
 
   create(createUserDto: CreateUserDto): User {
     const timeStamp = Date.now();
@@ -25,12 +32,13 @@ export class UserService {
       createdAt: timeStamp,
       updatedAt: timeStamp,
     };
-    this.users.push(newUser);
+    this.userRepository.save(newUser);
     return this.excludePassword(newUser);
   }
 
-  findAll(): User[] {
-    return this.users.map((user) => this.excludePassword(user));
+  async findAll(): Promise<User[]> {
+    // return this.users.map((user) => this.excludePassword(user));
+    return this.userRepository.find();
   }
 
   findOne(id: string): User {
@@ -41,21 +49,21 @@ export class UserService {
   updatePassword(
     id: string,
     updateUserPasswordDto: UpdateUserPasswordDto,
-  ): User {
+  ): void {
     const { data, index } = this.getUserData(id);
     console.log(data.password, updateUserPasswordDto.oldPassword);
     if (!(data.password === updateUserPasswordDto.oldPassword))
       throw new ForbiddenException(
         'Old password does not match the current password',
       );
-    const updatedUser: User = {
+    const updatedUser: User1 = {
       ...data,
       password: updateUserPasswordDto.newPassword,
       version: ++data.version,
       updatedAt: Date.now(),
     };
     this.users.splice(index, 1, updatedUser);
-    return this.excludePassword(updatedUser);
+    // return this.excludePassword(updatedUser);
   }
 
   remove(id: string): void {
