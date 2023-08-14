@@ -23,27 +23,26 @@ export class UserService {
 
   private getUserData = getData<User1>(this.users);
 
-  create(createUserDto: CreateUserDto): User {
+  async create(createUserDto: CreateUserDto): Promise<User> {
     const timeStamp = Date.now();
-    const newUser: User = {
-      id: uuid4(),
+    const newUser: Omit<User, 'id'> = {
       ...createUserDto,
       version: 1,
       createdAt: timeStamp,
       updatedAt: timeStamp,
     };
-    this.userRepository.save(newUser);
-    return this.excludePassword(newUser);
+    return this.excludePassword(await this.userRepository.save(newUser));
   }
 
   async findAll(): Promise<User[]> {
-    // return this.users.map((user) => this.excludePassword(user));
-    return this.userRepository.find();
+    return (await this.userRepository.find()).map((user) =>
+      this.excludePassword(user),
+    );
   }
 
-  findOne(id: string): User {
+  findOne(id: string): void {
     const { data } = this.getUserData(id);
-    return this.excludePassword(data);
+    // return this.excludePassword(data);
   }
 
   updatePassword(
@@ -54,7 +53,7 @@ export class UserService {
     console.log(data.password, updateUserPasswordDto.oldPassword);
     if (!(data.password === updateUserPasswordDto.oldPassword))
       throw new ForbiddenException(
-        'Old password does not match the current password',
+        'Old password does not match the current password1',
       );
     const updatedUser: User1 = {
       ...data,
