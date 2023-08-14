@@ -16,6 +16,7 @@ services:
 
   app:
     build: .
+    image: almondchips/nodejs2023q2-service-app
     restart: always
     environment:
       - PORT=${PORT}
@@ -29,11 +30,6 @@ services:
       - nodemodules:/app/node_modules
     depends_on:
       - db
-
-  admin:
-    image: nicolaka/netshoot
-    networks:
-      - service-net
 
 volumes:
   service-db: {}
