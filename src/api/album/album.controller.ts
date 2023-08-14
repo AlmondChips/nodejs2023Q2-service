@@ -16,6 +16,10 @@ import { UUIDValidationPipe } from '../pipes/uuid.validation.pipe';
 import { ArtistService } from '../artist/artist.service';
 import { TrackService } from '../track/track.service';
 import { FavsService } from '../favs/favs.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Artist } from 'src/database/entity/Artist';
+import { Repository } from 'typeorm';
+import { isExists } from 'src/helpers/isExists';
 
 @Controller('album')
 export class AlbumController {
@@ -23,19 +27,14 @@ export class AlbumController {
     private readonly albumService: AlbumService,
     private readonly artistService: ArtistService,
     private readonly trackService: TrackService,
-    private readonly favsService: FavsService,
+    @InjectRepository(Artist)
+    private artistRepository: Repository<Artist>,
   ) {}
 
   @Post()
-  create(@Body() createAlbumDto: CreateAlbumDto) {
+  async create(@Body() createAlbumDto: CreateAlbumDto) {
     const { artistId } = createAlbumDto;
-    try {
-      if (artistId) this.artistService.findOne(artistId);
-    } catch (error) {
-      throw new NotFoundException(
-        `Artist with id='${artistId}' does not exist`,
-      );
-    }
+    this.checkIfArtistValid(artistId);
     return this.albumService.create(createAlbumDto);
   }
 
@@ -50,19 +49,31 @@ export class AlbumController {
   }
 
   @Put(':id')
-  update(
+  async update(
     @Param('id', UUIDValidationPipe) id: string,
     @Body() updateAlbumDto: UpdateAlbumDto,
   ) {
+    const { artistId } = updateAlbumDto;
+    await this.checkIfArtistValid(artistId);
     return this.albumService.update(id, updateAlbumDto);
   }
 
   @Delete(':id')
   @HttpCode(204)
-  remove(@Param('id', UUIDValidationPipe) id: string) {
-    this.albumService.remove(id);
-    this.trackService.cascadeDeleteAlbumId(id);
-    this.favsService.removeOnFindAlbums(id);
-    return;
+  async remove(@Param('id', UUIDValidationPipe) id: string) {
+    return await this.albumService.remove(id);
+  }
+
+  async checkIfArtistValid(artistId) {
+    try {
+      if (artistId) {
+        const artist = await this.artistRepository.findOneBy({ id: artistId });
+        isExists(artist);
+      }
+    } catch (error) {
+      throw new NotFoundException(
+        `Artist with id='${artistId}' does not exist`,
+      );
+    }
   }
 }

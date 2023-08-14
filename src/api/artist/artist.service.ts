@@ -1,48 +1,51 @@
 import { Injectable } from '@nestjs/common';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
-import { Artist } from 'src/interfaces/service.resources.interface';
-import { getData } from 'src/helpers/getData';
 import { v4 as uuid4 } from 'uuid';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Artist } from 'src/database/entity/Artist';
+import { Repository } from 'typeorm';
+import { isExists } from 'src/helpers/isExists';
 
 @Injectable()
 export class ArtistService {
-  private readonly artists: Artist[] = [];
+  constructor(
+    @InjectRepository(Artist)
+    private artistRepository: Repository<Artist>,
+  ) {}
 
-  private getArtistData = (id: string) => {
-    return getData<Artist>(this.artists)(id);
+  private getArtistData = async (id: string) => {
+    const artist = await this.artistRepository.findOneBy({ id });
+    return isExists(artist);
   };
 
-  create(createArtistDto: CreateArtistDto): Artist {
-    const newArtist: Artist = {
-      id: uuid4(),
+  async create(createArtistDto: CreateArtistDto): Promise<Artist> {
+    const newArtist: Omit<Artist, 'id'> = {
       ...createArtistDto,
     };
-    this.artists.push(newArtist);
-    return newArtist;
+    return await this.artistRepository.save(newArtist);
   }
 
-  findAll(): Artist[] {
-    return this.artists;
+  async findAll(): Promise<Artist[]> {
+    return await this.artistRepository.find();
   }
 
   async findOne(id: string): Promise<Artist> {
-    const { data } = this.getArtistData(id);
-    return data;
+    const aritst = await this.getArtistData(id);
+    return aritst;
   }
 
-  update(id: string, updateArtistDto: UpdateArtistDto): Artist {
-    const { data, index } = this.getArtistData(id);
-    const updatedArtist = {
-      ...data,
+  async update(id: string, updateArtistDto: UpdateArtistDto): Promise<Artist> {
+    const artist = await this.getArtistData(id);
+    const newArtist = {
+      ...artist,
       ...updateArtistDto,
     };
-    this.artists.splice(index, 1, updatedArtist);
-    return updatedArtist;
+    return this.artistRepository.save(newArtist);
   }
 
-  remove(id: string): void {
-    const { index } = this.getArtistData(id);
-    this.artists.splice(index, 1);
+  async remove(id: string): Promise<void> {
+    await this.findOne(id);
+    await this.artistRepository.delete({ id });
   }
 }

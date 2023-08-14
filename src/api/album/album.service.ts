@@ -1,57 +1,60 @@
 import { Injectable } from '@nestjs/common';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
-import { Album } from 'src/interfaces/service.resources.interface';
-import { getData } from 'src/helpers/getData';
-import { v4 } from 'uuid';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Album } from 'src/database/entity/Album';
+import { Repository } from 'typeorm';
+import { isExists } from 'src/helpers/isExists';
+import { Artist } from 'src/database/entity/Artist';
 
 @Injectable()
 export class AlbumService {
+  constructor(
+    @InjectRepository(Album)
+    private albumRepository: Repository<Album>,
+    @InjectRepository(Artist)
+    private artistRepository: Repository<Artist>,
+  ) {}
   private albums: Album[] = [];
 
-  private getAlbumData = (id: string) => {
-    return getData<Album>(this.albums)(id);
+  private getAlbumData = async (id: string) => {
+    const album = await this.albumRepository.findOneBy({ id });
+    return isExists(album);
   };
 
-  create(createAlbumDto: CreateAlbumDto): Album {
-    const newAlbum: Album = {
-      id: v4(),
-      artistId: null,
+  async create(createAlbumDto: CreateAlbumDto): Promise<Album> {
+    const newAlbum = {
+      ...new Album(),
       ...createAlbumDto,
     };
-    this.albums.push(newAlbum);
-    return newAlbum;
+    return await this.albumRepository.save(newAlbum);
   }
 
-  findAll(): Album[] {
-    return this.albums;
+  async findAll(): Promise<Album[]> {
+    return await this.albumRepository.find();
   }
 
   async findOne(id: string): Promise<Album> {
-    const { data } = this.getAlbumData(id);
-    return data;
+    const album = await this.getAlbumData(id);
+    return album;
   }
 
-  update(id: string, updateAlbumDto: UpdateAlbumDto): Album {
-    const { data, index } = this.getAlbumData(id);
+  async update(id: string, updateAlbumDto: UpdateAlbumDto): Promise<Album> {
+    const album = await this.getAlbumData(id);
     const updatedAlbum = {
-      ...data,
+      ...album,
       ...updateAlbumDto,
     };
-    this.albums.splice(index, 1, updatedAlbum);
-    return updatedAlbum;
+    return await this.albumRepository.save(updatedAlbum);
   }
 
-  remove(id: string): void {
-    const { index } = this.getAlbumData(id);
-    this.albums.splice(index, 1);
+  async remove(id: string): Promise<void> {
+    await this.findOne(id);
+    await this.albumRepository.delete(id);
   }
 
   cascadeDeleteArtistId(id: string) {
     const updatedAlbums = this.albums.map((album) => {
-      if (album.artistId === id) {
-        album.artistId = null;
-      }
       return album;
     });
     this.albums = updatedAlbums;

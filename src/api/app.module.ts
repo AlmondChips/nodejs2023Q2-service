@@ -7,6 +7,10 @@ import { FavsModule } from './favs/favs.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { config } from 'dotenv';
 import { User } from 'src/database/entity/User';
+import { Artist } from 'src/database/entity/Artist';
+import { Album } from 'src/database/entity/Album';
+import { Track } from 'src/database/entity/Track';
+import { Favorites } from 'src/database/entity/Favorites';
 
 config();
 const {
@@ -27,8 +31,9 @@ const {
       database: POSTGRES_DB,
       synchronize: true,
       logging: false,
-      entities: [User],
-      migrations: [],
+      entities: [User, Artist, Album, Track, Favorites],
+      migrations: [__dirname + 'src/database/migration/*{.ts,.js}'],
+      migrationsRun: true,
       subscribers: [],
     }),
     UserModule,

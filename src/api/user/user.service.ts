@@ -1,27 +1,23 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User as User1 } from 'src/interfaces/service.resources.interface';
-import { v4 as uuid4 } from 'uuid';
 import { UpdateUserPasswordDto } from './dto/update-users-password.dto';
-import { getData } from 'src/helpers/getData';
 import { User } from 'src/database/entity/User';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { isExists } from 'src/helpers/isExists';
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
   ) {}
-  private readonly users: User1[] = [];
 
   private excludePassword(user: User): User {
     const userCopy = { ...user };
     delete userCopy['password'];
     return userCopy;
   }
-
-  private getUserData = getData<User1>(this.users);
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     const timeStamp = Date.now();
@@ -40,33 +36,36 @@ export class UserService {
     );
   }
 
-  findOne(id: string): void {
-    const { data } = this.getUserData(id);
-    // return this.excludePassword(data);
+  async findOne(id: string): Promise<User> {
+    const user = this.excludePassword(
+      await this.userRepository.findOneBy({ id }),
+    );
+    return isExists<User>(user);
   }
 
-  updatePassword(
+  async updatePassword(
     id: string,
     updateUserPasswordDto: UpdateUserPasswordDto,
-  ): void {
-    const { data, index } = this.getUserData(id);
+  ): Promise<User | void> {
+    const data = await this.userRepository.findOneBy({ id });
     console.log(data.password, updateUserPasswordDto.oldPassword);
+    // check old password
     if (!(data.password === updateUserPasswordDto.oldPassword))
       throw new ForbiddenException(
         'Old password does not match the current password1',
       );
-    const updatedUser: User1 = {
+    // if everything is alright then update password
+    const newUser = {
       ...data,
-      password: updateUserPasswordDto.newPassword,
       version: ++data.version,
       updatedAt: Date.now(),
+      password: updateUserPasswordDto.newPassword,
     };
-    this.users.splice(index, 1, updatedUser);
-    // return this.excludePassword(updatedUser);
+    return this.excludePassword(await this.userRepository.save(newUser));
   }
 
-  remove(id: string): void {
-    const { index } = this.getUserData(id);
-    this.users.splice(index, 1);
+  async remove(id: string): Promise<void> {
+    await this.findOne(id);
+    await this.userRepository.delete({ id });
   }
 }

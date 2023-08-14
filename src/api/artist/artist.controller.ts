@@ -50,9 +50,9 @@ export class ArtistController {
 
   @Delete(':id')
   @HttpCode(204)
-  remove(@Param('id', UUIDValidationPipe) id: string) {
+  async remove(@Param('id', UUIDValidationPipe) id: string) {
     this.favsService.removeOnFindArtist(id);
-    this.artistService.remove(id);
+    await this.artistService.remove(id);
     this.albumService.cascadeDeleteArtistId(id);
     this.trackService.cascadeDeleteArtistId(id);
     return;

@@ -1,52 +1,55 @@
 import { Injectable } from '@nestjs/common';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
-import { Track } from 'src/interfaces/service.resources.interface';
-import { getData } from 'src/helpers/getData';
 import { v4 } from 'uuid';
 import { cascadeDeleteKeyId } from 'src/helpers/cascadeDeleteKey';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Track } from 'src/database/entity/Track';
+import { Repository } from 'typeorm';
+import { isExists } from 'src/helpers/isExists';
 
 @Injectable()
 export class TrackService {
+  constructor(
+    @InjectRepository(Track)
+    private trackRepository: Repository<Track>,
+  ) {}
   private tracks: Track[] = [];
 
-  private getTrackData = (id: string) => {
-    return getData<Track>(this.tracks)(id);
+  private getTrackData = async (id: string) => {
+    const track = await this.trackRepository.findOneBy({ id });
+    return isExists(track);
   };
 
-  create(createTrackDto: CreateTrackDto) {
-    const newTrack: Track = {
-      id: v4(),
-      artistId: null,
-      albumId: null,
+  async create(createTrackDto: CreateTrackDto) {
+    const newTrack = {
+      ...new Track(),
       ...createTrackDto,
     };
-    this.tracks.push(newTrack);
-    return newTrack;
+    return await this.trackRepository.save(newTrack);
   }
 
-  findAll() {
-    return this.tracks;
+  async findAll() {
+    return await this.trackRepository.find();
   }
 
   async findOne(id: string) {
-    const { data } = await this.getTrackData(id);
-    return data;
+    return await this.getTrackData(id);
   }
 
-  update(id: string, updateTrackDto: UpdateTrackDto) {
-    const { data, index } = this.getTrackData(id);
+  async update(id: string, updateTrackDto: UpdateTrackDto) {
+    const track = await this.getTrackData(id);
     const updatedTrack = {
-      ...data,
+      ...track,
       ...updateTrackDto,
     };
-    this.tracks.splice(index, 1, updatedTrack);
-    return updatedTrack;
+    console.log(track, updatedTrack);
+    return await this.trackRepository.save(updatedTrack);
   }
 
-  remove(id: string) {
-    const { index } = this.getTrackData(id);
-    this.tracks.splice(index, 1);
+  async remove(id: string) {
+    const track = await this.getTrackData(id);
+    await this.trackRepository.delete(track);
   }
 
   cascadeDeleteArtistId = (id: string) => {

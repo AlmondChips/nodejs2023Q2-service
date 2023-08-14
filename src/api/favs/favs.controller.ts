@@ -14,6 +14,11 @@ import { TrackService } from '../track/track.service';
 import { AlbumService } from '../album/album.service';
 import { ArtistService } from '../artist/artist.service';
 import { UUIDValidationPipe } from '../pipes/uuid.validation.pipe';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Album } from 'src/database/entity/Album';
+import { Artist } from 'src/database/entity/Artist';
+import { Repository } from 'typeorm';
+import { Track } from 'src/database/entity/Track';
 
 @Controller('favs')
 export class FavsController {
@@ -22,6 +27,12 @@ export class FavsController {
     private readonly trackService: TrackService,
     private readonly albumService: AlbumService,
     private readonly artistService: ArtistService,
+    @InjectRepository(Track)
+    private trackRepository: Repository<Track>,
+    @InjectRepository(Album)
+    private albumRepository: Repository<Album>,
+    @InjectRepository(Artist)
+    private artistRepository: Repository<Artist>,
   ) {}
 
   @Get()
@@ -31,7 +42,7 @@ export class FavsController {
 
   @Post('/artist/:id')
   async addArtist(@Param('id', UUIDValidationPipe) id: string) {
-    const artist = await this.artistService.findOne(id).catch(() => {
+    const artist = await this.artistRepository.findOneBy({ id }).catch(() => {
       throw new UnprocessableEntityException(
         `Artist with id='${id}' does not exist`,
       );
@@ -47,7 +58,7 @@ export class FavsController {
 
   @Post('/album/:id')
   async addAlbum(@Param('id', UUIDValidationPipe) id: string) {
-    const album = await this.albumService.findOne(id).catch(() => {
+    const album = await this.albumRepository.findOneBy({ id }).catch(() => {
       throw new UnprocessableEntityException(
         `Album with id='${id}' does not exist`,
       );
@@ -63,7 +74,7 @@ export class FavsController {
 
   @Post('/track/:id')
   async addTrack(@Param('id', UUIDValidationPipe) id: string) {
-    const track = await this.trackService.findOne(id).catch(() => {
+    const track = await this.trackRepository.findOneBy({ id }).catch(() => {
       throw new UnprocessableEntityException(
         `Track with id='${id}' does not exist`,
       );

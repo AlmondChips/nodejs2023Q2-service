@@ -1,54 +1,91 @@
 import { Injectable } from '@nestjs/common';
-import { getData } from '../../helpers/getData';
-import {
-  Album,
-  Artist,
-  Track,
-} from 'src/interfaces/service.resources.interface';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Album } from 'src/database/entity/Album';
+import { Artist } from 'src/database/entity/Artist';
+import { Favorites } from 'src/database/entity/Favorites';
+import { Track } from 'src/database/entity/Track';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class FavsService {
+  constructor(
+    @InjectRepository(Album)
+    private albumRepository: Repository<Album>,
+    @InjectRepository(Artist)
+    private artistRepository: Repository<Artist>,
+    @InjectRepository(Favorites)
+    private favoritesRepository: Repository<Favorites>,
+  ) {}
+
   private artists: Artist[] = [];
   private albums: Album[] = [];
   private tracks: Track[] = [];
 
-  findAll() {
-    const { artists, albums, tracks } = this;
-    return {
-      artists,
-      albums,
-      tracks,
-    };
+  private async getFav(): Promise<Favorites> {
+    const favs = await this.favoritesRepository.findOne({
+      where: {},
+    });
+    console.log(favs);
+    if (!favs) {
+      const newFav = {
+        artists: [],
+        albums: [],
+        tracks: [],
+      };
+      await this.favoritesRepository.save(newFav);
+    }
+    return await this.favoritesRepository.findOne({
+      where: {},
+    });
   }
 
-  addArtist(entity: Artist) {
-    this.artists.push(entity);
+  excludeId(fav: Favorites): Omit<Favorites, 'id'> {
+    const copy = { ...fav };
+    delete copy['id'];
+    return copy;
+  }
+
+  async findAll() {
+    return await this.excludeId(await this.getFav());
+  }
+
+  async addArtist(entity: Artist) {
+    const favs = await this.getFav();
+    favs.artists.push(entity);
+    await this.favoritesRepository.save(favs);
     return `'${entity.name}' artist added to Favorites`;
   }
 
-  removeArtist(id: string): void {
-    const { index } = getData<Artist>(this.artists)(id);
-    this.artists.splice(index, 1);
+  async removeArtist(id: string): Promise<void> {
+    const favs = await this.getFav();
+    favs.artists = favs.artists.filter((artist) => artist.id !== id);
+    await this.favoritesRepository.save(favs);
   }
 
-  addAlbum(entity: Album) {
-    this.albums.push(entity);
+  async addAlbum(entity: Album) {
+    const favs = await this.getFav();
+    favs.albums.push(entity);
+    await this.favoritesRepository.save(favs);
     return `'${entity.name}' album added to Favorites`;
   }
 
-  removeAlbum(id: string): void {
-    const { index } = getData<Album>(this.albums)(id);
-    this.albums.splice(index, 1);
+  async removeAlbum(id: string): Promise<void> {
+    const favs = await this.getFav();
+    favs.albums = favs.albums.filter((album) => album.id !== id);
+    await this.favoritesRepository.save(favs);
   }
 
-  addTrack(entity: Track) {
-    this.tracks.push(entity);
+  async addTrack(entity: Track) {
+    const favs = await this.getFav();
+    favs.tracks.push(entity);
+    await this.favoritesRepository.save(favs);
     return `'${entity.name}' track added to Favorites`;
   }
 
-  removeTrack(id: string): void {
-    const { index } = getData<Track>(this.tracks)(id);
-    this.tracks.splice(index, 1);
+  async removeTrack(id: string): Promise<void> {
+    const favs = await this.getFav();
+    favs.tracks = favs.tracks.filter((album) => album.id !== id);
+    await this.favoritesRepository.save(favs);
   }
 
   // from other modules
