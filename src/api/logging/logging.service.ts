@@ -1,4 +1,4 @@
-import { Injectable, LoggerService } from '@nestjs/common';
+import { Injectable, Logger, LoggerService } from '@nestjs/common';
 import { logRequest, logResponse } from 'src/interfaces/logger.types';
 const colorReset = '\x1b[0m';
 const colorBrightCyan = '\x1b[96m';
@@ -16,13 +16,13 @@ const timeFormat: Intl.DateTimeFormatOptions = {
 };
 
 @Injectable()
-export class LoggingService implements LoggerService {
+export class LoggingService extends Logger {
   log(message: any, context?: string) {
     console.log(`[LOG] [${context}] ${message}`);
   }
 
-  error(message: any): any {
-    console.log(`[ERROR] ${message}`);
+  error(message: any, context?: string): any {
+    super.error(message);
   }
 
   warn(message: any): any {
@@ -52,7 +52,7 @@ export class LoggingService implements LoggerService {
     );
   }
 
-  logResponse({ method, originalUrl, statusCode }: logResponse) {
+  logResponse({ method, originalUrl, statusCode, body }: logResponse) {
     const timestamp = new Date().toLocaleString('en-US', timeFormat);
     const divider = '-'.repeat(60); // Divider for better separation
 
@@ -60,6 +60,12 @@ export class LoggingService implements LoggerService {
       `${divider}\n` +
         `${colorBrightCyan}[${timestamp}] Response: ${method} ${originalUrl}${colorReset}\n` +
         `${colorBrightYellow}Status Code: ${statusCode}${colorReset}\n` +
+        `${divider}\n` +
+        `${colorBrightGreen}Body:\n${JSON.stringify(
+          body || {},
+          undefined,
+          2,
+        )}${colorReset}\n` +
         `${divider}`,
     );
   }

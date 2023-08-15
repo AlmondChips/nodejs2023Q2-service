@@ -1,10 +1,16 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserPasswordDto } from './dto/update-users-password.dto';
 import { User } from 'src/database/entity/User';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { isExists } from 'src/helpers/isExists';
+import * as bcrypt from 'bcrypt';
 @Injectable()
 export class UserService {
   constructor(
@@ -18,15 +24,36 @@ export class UserService {
     return userCopy;
   }
 
+  async findByLoginAndPassword({ login, password }: CreateUserDto) {
+    const user = await this.userRepository.findOneBy({
+      login,
+    });
+    if (user && (await bcrypt.compare(password, user.password))) {
+      return user;
+    }
+    return null;
+  }
+
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const timeStamp = Date.now();
-    const newUser: Omit<User, 'id'> = {
-      ...createUserDto,
-      version: 1,
-      createdAt: timeStamp,
-      updatedAt: timeStamp,
-    };
-    return this.excludePassword(await this.userRepository.save(newUser));
+    const user = await this.userRepository.findOneBy({
+      login: createUserDto.login,
+    });
+
+    try {
+      isExists(user);
+    } catch (error) {
+      const timeStamp = Date.now();
+      const hashPassword = await bcrypt.hash(createUserDto.password, 10);
+      const newUser: Omit<User, 'id'> = {
+        ...createUserDto,
+        password: hashPassword,
+        version: 1,
+        createdAt: timeStamp,
+        updatedAt: timeStamp,
+      };
+      return this.excludePassword(await this.userRepository.save(newUser));
+    }
+    throw new HttpException('Login already exists', HttpStatus.CONFLICT);
   }
 
   async findAll(): Promise<User[]> {
@@ -49,17 +76,27 @@ export class UserService {
     const data = await this.userRepository.findOneBy({ id });
     isExists<User>(data);
     // check old password
-    if (!(data.password === updateUserPasswordDto.oldPassword))
+    const isEqual = await bcrypt.compare(
+      updateUserPasswordDto.oldPassword,
+      data.password,
+    );
+    if (!isEqual) {
       throw new ForbiddenException(
-        'Old password does not match the current password1',
+        'Old password does not match the current password',
       );
+    }
+
     // if everything is alright then update password
+    const hashPassword = await bcrypt.hash(
+      updateUserPasswordDto.newPassword,
+      10,
+    );
     const newUser: User = {
       ...data,
       version: ++data.version,
       updatedAt: Date.now(),
       createdAt: Number(data.createdAt),
-      password: updateUserPasswordDto.newPassword,
+      password: hashPassword,
     };
     return this.excludePassword(await this.userRepository.save(newUser));
   }

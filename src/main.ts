@@ -8,6 +8,7 @@ import 'reflect-metadata';
 import { OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
+import { LogginInterceptor } from './api/logging/logging.interceptor';
 
 config();
 

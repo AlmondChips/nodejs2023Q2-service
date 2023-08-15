@@ -4,10 +4,18 @@ import { UserController } from './user.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/database/entity/User';
 import { LoggingService } from '../logging/logging.service';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User])],
+  imports: [
+    TypeOrmModule.forFeature([User]),
+    JwtModule.register({
+      secret: process.env['SECRET'],
+      signOptions: { expiresIn: '1h' },
+    }),
+  ],
   controllers: [UserController],
   providers: [UserService, LoggingService],
+  exports: [UserService],
 })
 export class UserModule {}

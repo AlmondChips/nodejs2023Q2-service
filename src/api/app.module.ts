@@ -12,6 +12,11 @@ import { Album } from 'src/database/entity/Album';
 import { Track } from 'src/database/entity/Track';
 import { Favorites } from 'src/database/entity/Favorites';
 import { LoggingService } from './logging/logging.service';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { LoggingExceptionFilter } from './logging/exception.filter';
+import { AuthModule } from './auth/auth.module';
+import { LogginInterceptor } from './logging/logging.interceptor';
+import { AuthorizedUser } from 'src/database/entity/AuthorizedUser';
 
 config();
 const {
@@ -32,8 +37,8 @@ const {
       database: POSTGRES_DB,
       synchronize: true,
       logging: false,
-      entities: [User, Artist, Album, Track, Favorites],
-      migrations: [__dirname + 'src/database/migration/*{.ts,.js}'],
+      entities: [User, Artist, Album, Track, Favorites, AuthorizedUser],
+      migrations: [],
       migrationsRun: true,
       subscribers: [],
     }),
@@ -42,6 +47,18 @@ const {
     AlbumModule,
     TrackModule,
     FavsModule,
+    AuthModule,
+  ],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: LoggingExceptionFilter,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LogginInterceptor,
+    },
+    LoggingService,
   ],
 })
 export class AppModule {}

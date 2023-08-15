@@ -21,16 +21,17 @@ export class LogginInterceptor implements NestInterceptor {
       body,
     };
     this.loggingService.logRequest(logMessage);
-
     return next.handle().pipe(
-      tap(() => {
+      tap((body) => {
         const response = context.switchToHttp().getResponse();
         const { statusCode } = response;
         const logMessage = {
           method,
           originalUrl,
           statusCode,
+          body,
         };
+
         this.loggingService.logResponse(logMessage);
       }),
     );

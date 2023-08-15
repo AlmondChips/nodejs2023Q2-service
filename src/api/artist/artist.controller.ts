@@ -52,8 +52,6 @@ export class ArtistController {
   @HttpCode(204)
   async remove(@Param('id', UUIDValidationPipe) id: string) {
     await this.artistService.remove(id);
-    this.albumService.cascadeDeleteArtistId(id);
-    this.trackService.cascadeDeleteArtistId(id);
     return;
   }
 }

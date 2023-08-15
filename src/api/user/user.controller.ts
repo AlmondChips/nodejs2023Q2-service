@@ -13,12 +13,19 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserPasswordDto } from './dto/update-users-password.dto';
 import { UUIDValidationPipe } from 'src/api/pipes/uuid.validation.pipe';
-import { LogginInterceptor } from '../logging/logging.interceptor';
+import { Repository } from 'typeorm';
+import { User } from 'src/database/entity/User';
+import { InjectRepository } from '@nestjs/typeorm';
+import { AuthInterceptor } from '../middleware/auth.interceptor';
 
 @Controller('user')
-@UseInterceptors(LogginInterceptor)
+@UseInterceptors(AuthInterceptor)
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+  ) {}
 
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {

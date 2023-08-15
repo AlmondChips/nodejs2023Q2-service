@@ -52,11 +52,4 @@ export class AlbumService {
     await this.findOne(id);
     await this.albumRepository.delete(id);
   }
-
-  cascadeDeleteArtistId(id: string) {
-    const updatedAlbums = this.albums.map((album) => {
-      return album;
-    });
-    this.albums = updatedAlbums;
-  }
 }

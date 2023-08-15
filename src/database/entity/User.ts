@@ -9,7 +9,7 @@ export class User {
   login: string;
 
   @Column()
-  password?: string;
+  password: string;
 
   @Column()
   version: number; // integer number, increments on update

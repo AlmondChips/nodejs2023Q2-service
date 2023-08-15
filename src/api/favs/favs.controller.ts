@@ -87,7 +87,6 @@ export class FavsController {
           `Track with id='${id}' does not exist`,
         );
       });
-    console.log('I came throught!!1');
 
     return await this.favsService.addTrack(track);
   }

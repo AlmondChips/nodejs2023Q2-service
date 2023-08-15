@@ -49,11 +49,4 @@ export class TrackService {
     await this.getTrackData(id);
     await this.trackRepository.delete(id);
   }
-
-  cascadeDeleteArtistId = (id: string) => {
-    this.tracks = cascadeDeleteKeyId<Track>(this.tracks, 'artistId')(id);
-  };
-  cascadeDeleteAlbumId = (id: string) => {
-    this.tracks = cascadeDeleteKeyId<Track>(this.tracks, 'albumId')(id);
-  };
 }
