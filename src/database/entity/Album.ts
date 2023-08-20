@@ -18,7 +18,7 @@ export class Album {
   @Column()
   year: number;
 
-  @Column()
+  @Column({ nullable: true })
   artistId: string;
 
   @ManyToOne(() => Artist, { onDelete: 'SET NULL' })

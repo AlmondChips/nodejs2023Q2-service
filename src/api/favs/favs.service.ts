@@ -1,18 +1,26 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Album } from 'src/database/entity/Album';
 import { Artist } from 'src/database/entity/Artist';
 import { Favorites } from 'src/database/entity/Favorites';
 import { Track } from 'src/database/entity/Track';
 import { Repository } from 'typeorm';
+import { TrackService } from '../track/track.service';
+import { ArtistService } from '../artist/artist.service';
+import { AlbumService } from '../album/album.service';
+import { isExists } from 'src/helpers/isExists';
 
+enum favoriteCategories {
+  albums = 'albums',
+  tracks = 'tracks',
+  artists = 'artists',
+}
 @Injectable()
 export class FavsService {
   constructor(
-    @InjectRepository(Album)
-    private albumRepository: Repository<Album>,
-    @InjectRepository(Artist)
-    private artistRepository: Repository<Artist>,
+    private readonly trackService: TrackService,
+    private readonly artistService: ArtistService,
+    private readonly albumService: AlbumService,
     @InjectRepository(Favorites)
     private favoritesRepository: Repository<Favorites>,
   ) {}
@@ -25,7 +33,6 @@ export class FavsService {
     const favs = await this.favoritesRepository.findOne({
       where: {},
     });
-    console.log(favs);
     if (!favs) {
       const newFav = {
         artists: [],
@@ -39,6 +46,20 @@ export class FavsService {
     });
   }
 
+  private async isInFavs<T extends Album | Track | Artist>(
+    id: string,
+    entity: favoriteCategories,
+  ) {
+    const favs = await this.getFav();
+    const list = favs[entity] as T[];
+    if (list) {
+      const item = list.find((item) => item.id === id);
+      if (!item) throw new UnprocessableEntityException();
+    } else {
+      throw new Error('Incorrect entity name');
+    }
+  }
+
   excludeId(fav: Favorites): Omit<Favorites, 'id'> {
     const copy = { ...fav };
     delete copy['id'];
@@ -50,6 +71,7 @@ export class FavsService {
   }
 
   async addArtist(entity: Artist) {
+    isExists(entity);
     const favs = await this.getFav();
     favs.artists.push(entity);
     await this.favoritesRepository.save(favs);
@@ -57,12 +79,14 @@ export class FavsService {
   }
 
   async removeArtist(id: string): Promise<void> {
+    await this.isInFavs<Artist>(id, favoriteCategories.artists);
     const favs = await this.getFav();
     favs.artists = favs.artists.filter((artist) => artist.id !== id);
     await this.favoritesRepository.save(favs);
   }
 
   async addAlbum(entity: Album) {
+    isExists(entity);
     const favs = await this.getFav();
     favs.albums.push(entity);
     await this.favoritesRepository.save(favs);
@@ -76,40 +100,17 @@ export class FavsService {
   }
 
   async addTrack(entity: Track) {
+    isExists(entity);
     const favs = await this.getFav();
     favs.tracks.push(entity);
     await this.favoritesRepository.save(favs);
     return `'${entity.name}' track added to Favorites`;
   }
 
-  async removeTrack(id: string): Promise<void> {
+  async removeTrack(id: string): Promise<Favorites> {
+    await this.isInFavs<Track>(id, favoriteCategories.tracks);
     const favs = await this.getFav();
-    favs.tracks = favs.tracks.filter((album) => album.id !== id);
-    await this.favoritesRepository.save(favs);
-  }
-
-  // from other modules
-  removeOnFindArtist(id: string) {
-    this.artists.forEach((item, idx) => {
-      if (item.id === id) {
-        this.artists.splice(idx, 1);
-      }
-    });
-  }
-
-  removeOnFindTrack(id: string) {
-    this.tracks.forEach((item, idx) => {
-      if (item.id === id) {
-        this.tracks.splice(idx, 1);
-      }
-    });
-  }
-
-  removeOnFindAlbums(id: string) {
-    this.albums.forEach((item, idx) => {
-      if (item.id === id) {
-        this.albums.splice(idx, 1);
-      }
-    });
+    favs.tracks = favs.tracks.filter((track) => track.id !== id);
+    return await this.favoritesRepository.save(favs);
   }
 }

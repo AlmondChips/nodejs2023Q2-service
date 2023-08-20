@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
-import { v4 as uuid4 } from 'uuid';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Artist } from 'src/database/entity/Artist';
 import { Repository } from 'typeorm';
@@ -32,7 +31,7 @@ export class ArtistService {
 
   async findOne(id: string): Promise<Artist> {
     const aritst = await this.getArtistData(id);
-    return aritst;
+    return isExists<Artist>(aritst);
   }
 
   async update(id: string, updateArtistDto: UpdateArtistDto): Promise<Artist> {
@@ -46,6 +45,6 @@ export class ArtistService {
 
   async remove(id: string): Promise<void> {
     await this.findOne(id);
-    await this.artistRepository.delete({ id });
+    await this.artistRepository.delete(id);
   }
 }

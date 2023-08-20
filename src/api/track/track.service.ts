@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
-import { v4 } from 'uuid';
 import { cascadeDeleteKeyId } from 'src/helpers/cascadeDeleteKey';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Track } from 'src/database/entity/Track';
@@ -43,13 +42,12 @@ export class TrackService {
       ...track,
       ...updateTrackDto,
     };
-    console.log(track, updatedTrack);
     return await this.trackRepository.save(updatedTrack);
   }
 
   async remove(id: string) {
-    const track = await this.getTrackData(id);
-    await this.trackRepository.delete(track);
+    await this.getTrackData(id);
+    await this.trackRepository.delete(id);
   }
 
   cascadeDeleteArtistId = (id: string) => {
