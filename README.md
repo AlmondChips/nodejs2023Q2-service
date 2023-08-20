@@ -21,12 +21,17 @@ npm install
 ## Running application
 
 ```
-npm run compose
+npm run docker:compose
 ```
 to run the application in docker containers
 
 After starting the app on port (4000 as default) you can work with service via sending http-requests
 
+## Vulnerability scanning
+
+```
+npm run docker:scan
+```
 ## Testing
 
 After application running open new terminal and enter:
