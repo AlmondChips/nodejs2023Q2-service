@@ -11,6 +11,7 @@ import { Artist } from 'src/database/entity/Artist';
 import { Album } from 'src/database/entity/Album';
 import { Track } from 'src/database/entity/Track';
 import { Favorites } from 'src/database/entity/Favorites';
+import { LoggingService } from './logging/logging.service';
 
 config();
 const {

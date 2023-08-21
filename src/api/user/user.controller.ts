@@ -7,13 +7,16 @@ import {
   Delete,
   Put,
   HttpCode,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserPasswordDto } from './dto/update-users-password.dto';
 import { UUIDValidationPipe } from 'src/api/pipes/uuid.validation.pipe';
+import { LogginInterceptor } from '../logging/logging.interceptor';
 
 @Controller('user')
+@UseInterceptors(LogginInterceptor)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
