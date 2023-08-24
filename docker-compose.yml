@@ -1,0 +1,40 @@
+version: "3.7"
+services:
+  db:
+    image: postgres
+    restart: always
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - service-db:/var/lib/postgresql/data
+    networks:
+      - service-net
+
+  app:
+    build: .
+    image: almondchips/nodejs2023q2-service-app
+    restart: always
+    environment:
+      - PORT=${PORT}
+      - CHOKIDAR_USEPOLLING=true
+    ports:
+      - ${PORT}:${PORT}
+    networks:
+      - service-net
+    volumes:
+      - .:/app
+      - nodemodules:/app/node_modules
+    depends_on:
+      - db
+
+volumes:
+  service-db: {}
+  nodemodules: {}
+
+networks:
+  service-net:
+    driver: bridge
