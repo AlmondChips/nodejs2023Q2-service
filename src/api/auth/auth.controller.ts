@@ -2,13 +2,14 @@ import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { ForbiddenException } from '@nestjs/common';
+import { RefreshDto } from './dto/refresh.dto';
+import { UUIDValidationPipe } from '../pipes/uuid.validation.pipe';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('/signup')
-  // @HttpCode(HttpStatus.CREATED)
   async create(@Body() createUserDto: CreateUserDto) {
     return await this.authService.signup(createUserDto);
   }
@@ -21,5 +22,10 @@ export class AuthController {
       throw new ForbiddenException('Invalid credentials');
     }
     return await this.authService.login(user);
+  }
+
+  @Post('/refresh')
+  async refresh(@Body() refreshDto: RefreshDto) {
+    return this.authService.refresh(refreshDto);
   }
 }

@@ -27,10 +27,14 @@ export class AuthorizedUser {
   accessToken: string;
 
   @Column({ type: 'bigint', width: 200 })
-  expiresAt: number; // timestamp of creation
+  expiresAt: number;
+
+  @Column({ type: 'bigint', width: 200 })
+  refreshExpiresAt: number;
 
   @OneToOne(() => User, {
     onDelete: 'CASCADE',
+    eager: true,
   })
   @JoinColumn({ name: 'userId' })
   user: User;

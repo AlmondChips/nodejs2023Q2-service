@@ -21,11 +21,7 @@ import { AuthInterceptor } from '../middleware/auth.interceptor';
 @Controller('user')
 @UseInterceptors(AuthInterceptor)
 export class UserController {
-  constructor(
-    private readonly userService: UserService,
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
-  ) {}
+  constructor(private readonly userService: UserService) {}
 
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
