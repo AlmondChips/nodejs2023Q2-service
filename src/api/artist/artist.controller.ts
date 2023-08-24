@@ -7,23 +7,18 @@ import {
   Delete,
   Put,
   HttpCode,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ArtistService } from './artist.service';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 import { UUIDValidationPipe } from '../pipes/uuid.validation.pipe';
-import { AlbumService } from '../album/album.service';
-import { TrackService } from '../track/track.service';
-import { FavsService } from '../favs/favs.service';
+import { AuthInterceptor } from '../middleware/auth.interceptor';
 
 @Controller('artist')
+@UseInterceptors(AuthInterceptor)
 export class ArtistController {
-  constructor(
-    private readonly artistService: ArtistService,
-    private readonly albumService: AlbumService,
-    private readonly trackService: TrackService,
-    private readonly favsService: FavsService,
-  ) {}
+  constructor(private readonly artistService: ArtistService) {}
 
   @Post()
   async create(@Body() createArtistDto: CreateArtistDto) {

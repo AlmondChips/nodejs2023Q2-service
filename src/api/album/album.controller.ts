@@ -8,25 +8,23 @@ import {
   Put,
   NotFoundException,
   HttpCode,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AlbumService } from './album.service';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 import { UUIDValidationPipe } from '../pipes/uuid.validation.pipe';
-import { ArtistService } from '../artist/artist.service';
-import { TrackService } from '../track/track.service';
-import { FavsService } from '../favs/favs.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Artist } from 'src/database/entity/Artist';
 import { Repository } from 'typeorm';
 import { isExists } from 'src/helpers/isExists';
+import { AuthInterceptor } from '../middleware/auth.interceptor';
 
 @Controller('album')
+@UseInterceptors(AuthInterceptor)
 export class AlbumController {
   constructor(
     private readonly albumService: AlbumService,
-    private readonly artistService: ArtistService,
-    private readonly trackService: TrackService,
     @InjectRepository(Artist)
     private artistRepository: Repository<Artist>,
   ) {}

@@ -19,8 +19,7 @@ export class AuthService {
   ) {}
 
   async signup(createUserDto: CreateUserDto) {
-    await this.userService.create(createUserDto);
-    return 'User succesfully signed up';
+    return await this.userService.create(createUserDto);
   }
 
   async validateUser(loginDto: CreateUserDto) {

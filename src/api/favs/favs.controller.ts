@@ -6,6 +6,7 @@ import {
   Delete,
   UnprocessableEntityException,
   HttpCode,
+  UseInterceptors,
 } from '@nestjs/common';
 import { FavsService } from './favs.service';
 import { UUIDValidationPipe } from '../pipes/uuid.validation.pipe';
@@ -15,8 +16,10 @@ import { Artist } from 'src/database/entity/Artist';
 import { Repository } from 'typeorm';
 import { Track } from 'src/database/entity/Track';
 import { isExists } from 'src/helpers/isExists';
+import { AuthInterceptor } from '../middleware/auth.interceptor';
 
 @Controller('favs')
+@UseInterceptors(AuthInterceptor)
 export class FavsController {
   constructor(
     private readonly favsService: FavsService,

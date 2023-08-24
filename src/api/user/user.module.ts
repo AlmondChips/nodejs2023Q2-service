@@ -7,13 +7,7 @@ import { LoggingService } from '../logging/logging.service';
 import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([User]),
-    JwtModule.register({
-      secret: process.env['SECRET'],
-      signOptions: { expiresIn: '1h' },
-    }),
-  ],
+  imports: [TypeOrmModule.forFeature([User])],
   controllers: [UserController],
   providers: [UserService, LoggingService],
   exports: [UserService],
