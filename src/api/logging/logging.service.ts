@@ -1,4 +1,4 @@
-import { Injectable, Logger, LoggerService } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { logRequest, logResponse } from 'src/interfaces/logger.types';
 const colorReset = '\x1b[0m';
 const colorBrightCyan = '\x1b[96m';
@@ -21,7 +21,7 @@ export class LoggingService extends Logger {
     console.log(`[LOG] [${context}] ${message}`);
   }
 
-  error(message: any, context?: string): any {
+  error(message: any): any {
     super.error(message);
   }
 

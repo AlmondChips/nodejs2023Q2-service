@@ -3,7 +3,6 @@ import { AuthService } from './auth.service';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { ForbiddenException } from '@nestjs/common';
 import { RefreshDto } from './dto/refresh.dto';
-import { UUIDValidationPipe } from '../pipes/uuid.validation.pipe';
 
 @Controller('auth')
 export class AuthController {

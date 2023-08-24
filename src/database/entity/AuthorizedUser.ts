@@ -1,15 +1,10 @@
 import {
   Entity,
   PrimaryGeneratedColumn,
-  ManyToMany,
-  JoinTable,
   OneToOne,
   JoinColumn,
   Column,
 } from 'typeorm';
-import { Track } from './Track';
-import { Artist } from './Artist';
-import { Album } from './Album';
 import { User } from './User';
 
 @Entity()

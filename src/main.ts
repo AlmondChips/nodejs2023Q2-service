@@ -8,7 +8,6 @@ import 'reflect-metadata';
 import { OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
-import { LogginInterceptor } from './api/logging/logging.interceptor';
 
 config();
 
@@ -25,7 +24,7 @@ async function bootstrap() {
   SwaggerModule.setup('doc', app, apiDocYaml as OpenAPIObject);
 
   await app.listen(port, () =>
-    console.log(`Server is listening on port!!! `, port),
+    console.log(`Server is listening on port: `, port),
   );
 }
 bootstrap();

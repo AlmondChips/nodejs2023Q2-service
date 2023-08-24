@@ -13,9 +13,6 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserPasswordDto } from './dto/update-users-password.dto';
 import { UUIDValidationPipe } from 'src/api/pipes/uuid.validation.pipe';
-import { Repository } from 'typeorm';
-import { User } from 'src/database/entity/User';
-import { InjectRepository } from '@nestjs/typeorm';
 import { AuthInterceptor } from '../middleware/auth.interceptor';
 
 @Controller('user')
